@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "build:clean": "npx rimraf lib/*",
-    "build": "npm run build:clean && npx cross-env __ENV=production rollup -c",
+    "build": "npm run build:clean && npx cross-env __ENV=production npx rollup -c",
     "dev": "npx cross-env __ENV=development rollup -c -w",
     "prepublishOnly": "yarn build",
     "postpublish": "yarn build:clean"
