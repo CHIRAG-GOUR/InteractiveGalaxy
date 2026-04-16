@@ -1,7 +1,7 @@
 import Galaxy from 'Galaxy';
 // @ts-expect-error
 import { OrbitControls } from '../helpers/OrbitControls';
-import { Vector3 } from 'three';
+import { Vector2, Vector3, Raycaster, Plane } from 'three';
 
 // @ts-expect-error
 import particleTexture from '../assets/particle-example.png';
@@ -17,41 +17,55 @@ function basicExample(): void {
       {
         color: '#6b32a8', // Deep Violet
         texture: particleTexture,
-        count: 50000,
+        count: 100000,
         sizeAmp: 1.5,
-        minRadius: 0.2,
-        maxRadius: 2.5,
+        minRadius: 0.1,
+        maxRadius: 3.5,
         speedAmp: 1.2
       },
       {
         color: '#2196F3', // Light Blue
         texture: particleTexture,
-        count: 30000,
+        count: 50000,
         sizeAmp: 1.0,
         minRadius: 0.1,
-        maxRadius: 2.0,
+        maxRadius: 2.5,
         speedAmp: 0.8
       },
       {
         color: '#ffc107', // Star gold accent
         texture: particleTexture,
-        count: 10000,
+        count: 15000,
         sizeAmp: 0.8,
-        minRadius: 0.5,
-        maxRadius: 1.5,
+        minRadius: 0.2,
+        maxRadius: 2.0,
         speedAmp: 1.5
       }
     ]
   });
 
+  // Position camera directly overhead for a centered look with slight angle for 3D depth
+  galaxy.camera.position.set(0, 4.0, 1.0);
+  galaxy.camera.lookAt(0, 0, 0);
+
+  // Setup raycaster for accurate mouse interaction on the galaxy plane
+  const raycaster = new Raycaster();
+  const mouse = new Vector2();
+  const groundPlane = new Plane(new Vector3(0, 1, 0), 0);
+  const targetPointer = new Vector3();
+
   // Track mouse for shader interaction
   window.addEventListener('mousemove', (event) => {
-    const x = (event.clientX / window.innerWidth) * 2 - 1;
-    const y = -(event.clientY / window.innerHeight) * 2 + 1;
-    galaxy.trackMouse(new Vector3(x, y, 0));
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    
+    raycaster.setFromCamera(mouse, galaxy.camera);
+    raycaster.ray.intersectPlane(groundPlane, targetPointer);
+    
+    galaxy.trackMouse(targetPointer);
   });
 
-  // Add passive rotation
+  // Add passive rotation around the Y axis
   setInterval(() => {
     galaxy.camera.position.applyAxisAngle(new Vector3(0, 1, 0), 0.002);
     galaxy.camera.lookAt(0, 0, 0);
