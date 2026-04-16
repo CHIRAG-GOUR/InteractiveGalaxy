@@ -17,13 +17,13 @@ const devOutput = {
 };
 const productionOutput = [
   {
-    file: 'lib/bundle-esm.js',
-    format: 'esm'
+    file: 'lib/index.js',
+    format: 'iife'
   }
 ];
 
 const config = {
-  input: production ? 'src/index.ts' : 'src/app.ts',
+  input: 'src/app.ts',
   output: production ? productionOutput : devOutput,
   plugins: [
     image(),
