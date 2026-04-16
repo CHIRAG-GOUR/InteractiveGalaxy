@@ -28,28 +28,17 @@ const config = {
   plugins: [
     image(),
     glsl({
-      // By default, everything gets included
       include: 'src/**/*.glsl',
-
-      // Undefined by default
       exclude: ['**/index.html'],
-
-      // Source maps are on by default
       sourceMap: true
     }),
     ts({
       typescript,
-      tsconfig: production ? 'ts/es.tsconfig.json' : 'tsconfig.json'
+      tsconfig: 'tsconfig.json'
     }),
-    !production && sourcemaps(),
-    nodeResolve(
-      production
-        ? {
-            jail: 'src'
-          }
-        : undefined
-    ),
-    !production && babel({ babelHelpers: 'bundled' }),
+    sourcemaps(),
+    nodeResolve(),
+    babel({ babelHelpers: 'bundled' }),
     !production &&
       serve({
         port: 3000
@@ -57,9 +46,7 @@ const config = {
     !production &&
       livereload({
         watch: 'lib',
-        verbose: true, // Disable console output
-
-        // other livereload options
+        verbose: true,
         port: 35729
       })
   ]
