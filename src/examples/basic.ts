@@ -9,15 +9,19 @@ import particleTexture from '../assets/particle-example.png';
 const canvas = document.createElement('canvas');
 
 function basicExample(): void {
+  // Mobile performance optimization
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const particleMultiplier = isMobile ? 0.2 : 1.0;
+
   const galaxy = new Galaxy({
     canvas: document.querySelector('#c') ?? canvas,
     window,
-    backgroundColor: '#02040c',
+    backgroundColor: '#000000', // Matches Skillizee theme
     layers: [
       {
         color: '#6b32a8', // Deep Violet
         texture: particleTexture,
-        count: 100000,
+        count: Math.floor(100000 * particleMultiplier),
         sizeAmp: 1.5,
         minRadius: 0.1,
         maxRadius: 3.5,
@@ -26,7 +30,7 @@ function basicExample(): void {
       {
         color: '#2196F3', // Light Blue
         texture: particleTexture,
-        count: 50000,
+        count: Math.floor(50000 * particleMultiplier),
         sizeAmp: 1.0,
         minRadius: 0.1,
         maxRadius: 2.5,
@@ -35,7 +39,7 @@ function basicExample(): void {
       {
         color: '#ffc107', // Star gold accent
         texture: particleTexture,
-        count: 15000,
+        count: Math.floor(15000 * particleMultiplier),
         sizeAmp: 0.8,
         minRadius: 0.2,
         maxRadius: 2.0,
@@ -48,22 +52,38 @@ function basicExample(): void {
   galaxy.camera.position.set(0, 4.0, 1.0);
   galaxy.camera.lookAt(0, 0, 0);
 
-  // Setup raycaster for accurate mouse interaction on the galaxy plane
+  // Setup raycaster for accurate interaction on the galaxy plane
   const raycaster = new Raycaster();
   const mouse = new Vector2();
   const groundPlane = new Plane(new Vector3(0, 1, 0), 0);
   const targetPointer = new Vector3();
 
-  // Track mouse for shader interaction
-  window.addEventListener('mousemove', (event) => {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  // Unified pointer handler for mouse and touch
+  const handlePointer = (clientX: number, clientY: number): void => {
+    mouse.x = (clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
     
     raycaster.setFromCamera(mouse, galaxy.camera);
     raycaster.ray.intersectPlane(groundPlane, targetPointer);
     
     galaxy.trackMouse(targetPointer);
-  });
+  };
+
+  // Mouse interaction
+  window.addEventListener('mousemove', (event) => handlePointer(event.clientX, event.clientY));
+
+  // Touch interaction (optimized for mobile)
+  window.addEventListener('touchstart', (event) => {
+    if (event.touches.length > 0) {
+      handlePointer(event.touches[0].clientX, event.touches[0].clientY);
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (event) => {
+    if (event.touches.length > 0) {
+      handlePointer(event.touches[0].clientX, event.touches[0].clientY);
+    }
+  }, { passive: true });
 
   // Add passive rotation around the Y axis
   setInterval(() => {
@@ -72,7 +92,10 @@ function basicExample(): void {
   }, 16);
 
   // eslint-disable-next-line no-new
-  new OrbitControls(galaxy.camera, document.querySelector('#c'));
+  if (!isMobile) {
+    new OrbitControls(galaxy.camera, document.querySelector('#c'));
+  }
+  
   galaxy.render();
   galaxy.play();
 }
